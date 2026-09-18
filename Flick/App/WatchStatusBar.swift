@@ -21,6 +21,8 @@ struct WatchStatusBar: View {
         .padding(.vertical, 8)
         .background(.bar)
         .overlay(alignment: .bottom) { Divider() }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("Watch status: \(message)")
     }
 
     private var state: PhoneLink.State { hub.link.state }
@@ -35,8 +37,8 @@ struct WatchStatusBar: View {
         if !hub.link.isSupported { return "Watch link not available on this device" }
         if !state.isActivated { return "Connecting to Watch" }
         if !state.isPaired { return "No Apple Watch paired" }
-        if !state.isWatchAppInstalled { return "Install Flick on the Watch to begin" }
+        if !state.isWatchAppInstalled { return "Install the Watch app to begin" }
         if state.isReachable { return "Watch is live. Flick anywhere on it." }
-        return "Open Flick on the Watch to connect"
+        return "Open the app on the Watch to connect"
     }
 }

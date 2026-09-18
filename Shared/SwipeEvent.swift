@@ -25,15 +25,11 @@ enum SwipeDirection: String, Codable, Sendable, CaseIterable {
         }
     }
 
-    /// What the phone does with this direction. Kept next to the direction so
-    /// both screens describe the same mapping.
-    var action: String {
+    var mirroredHorizontally: SwipeDirection {
         switch self {
-        case .left: "Next card"
-        case .right: "Previous card"
-        case .up: "Star or unstar"
-        case .down: "Dismiss card"
-        case .tap: "Flip card"
+        case .left: .right
+        case .right: .left
+        default: self
         }
     }
 }
@@ -73,17 +69,4 @@ struct SwipeEvent: Codable, Sendable, Identifiable, Hashable {
         self.sentAt = sentAt
         self.source = source
     }
-}
-
-/// What the phone tells the Watch about the thing being controlled, so the
-/// Watch can show what its next flick will act on.
-struct PhoneContext: Codable, Sendable, Equatable {
-    var title: String
-    var index: Int
-    var count: Int
-    var isStarred: Bool
-    var isFlipped: Bool
-
-    static let empty = PhoneContext(title: "Deck empty", index: 0, count: 0,
-                                    isStarred: false, isFlipped: false)
 }

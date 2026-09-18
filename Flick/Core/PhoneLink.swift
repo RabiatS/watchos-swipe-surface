@@ -2,9 +2,9 @@ import Foundation
 import Observation
 import WatchConnectivity
 
-/// The phone's end of the link. Receives flicks from the Watch, answers each
-/// one with the phone's new state, and pushes that state again whenever the
-/// deck changes so the Watch always knows what it is pointing at.
+/// The phone's end of the link. Receives messages from the Watch, answers each
+/// one with the phone's new state, and pushes that state again whenever it
+/// changes so the Watch always knows what it is pointing at.
 ///
 /// WCSession calls its delegate on a private queue, so every delegate method
 /// is `nonisolated`, converts what it received into plain values, and hops to
@@ -22,9 +22,9 @@ final class PhoneLink: NSObject, WCSessionDelegate {
     private(set) var state = State()
     private(set) var lastError: String?
 
-    /// Called on the main actor for every event that arrives. Returns the
-    /// context to acknowledge with, so the Watch sees the result of its flick.
-    @ObservationIgnored var onEvent: ((SwipeEvent) -> PhoneContext)?
+    /// Called on the main actor for every message that arrives. Returns the
+    /// context to acknowledge with, so the Watch sees the result.
+    @ObservationIgnored var onMessage: ((WatchMessage) -> PhoneContext)?
     /// Called on the main actor when pairing or reachability changes.
     @ObservationIgnored var onStateChange: (() -> Void)?
 
@@ -52,8 +52,8 @@ final class PhoneLink: NSObject, WCSessionDelegate {
 
     // MARK: Main-actor handling
 
-    private func deliver(_ event: SwipeEvent) -> PhoneContext {
-        onEvent?(event) ?? .empty
+    private func deliver(_ message: WatchMessage) -> PhoneContext {
+        onMessage?(message) ?? .empty
     }
 
     private func apply(_ newState: State, error: String? = nil) {
@@ -104,15 +104,15 @@ final class PhoneLink: NSObject, WCSessionDelegate {
     }
 
     nonisolated func session(_ session: WCSession, didReceiveMessageData messageData: Data) {
-        guard let event = Wire.decodeEvent(messageData) else { return }
+        guard let message = Wire.decodeMessage(messageData) else { return }
         Task { @MainActor in
-            _ = self.deliver(event)
+            _ = self.deliver(message)
         }
     }
 
     nonisolated func session(_ session: WCSession, didReceiveMessageData messageData: Data,
                              replyHandler: @escaping (Data) -> Void) {
-        guard let event = Wire.decodeEvent(messageData) else {
+        guard let message = Wire.decodeMessage(messageData) else {
             replyHandler(Data())
             return
         }
@@ -120,15 +120,15 @@ final class PhoneLink: NSObject, WCSessionDelegate {
         // once, from this Task, so carrying it across is safe.
         nonisolated(unsafe) let reply = replyHandler
         Task { @MainActor in
-            let context = self.deliver(event)
+            let context = self.deliver(message)
             reply(Wire.encode(context) ?? Data())
         }
     }
 
     nonisolated func session(_ session: WCSession, didReceiveUserInfo userInfo: [String: Any] = [:]) {
-        guard let event = Wire.event(from: userInfo) else { return }
+        guard let message = Wire.message(from: userInfo) else { return }
         Task { @MainActor in
-            _ = self.deliver(event)
+            _ = self.deliver(message)
         }
     }
 }

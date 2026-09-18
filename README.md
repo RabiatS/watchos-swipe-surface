@@ -4,7 +4,7 @@
 
 **The Apple Watch as a touch surface for other Apple devices. iPhone first, Apple TV and Apple Vision Pro next.**
 
-<img src="docs/screenshots/hero-watch-and-phone.png" alt="A left flick on the Watch simulator, and the iPhone simulator's card deck after six flicks from the Watch" width="720">
+<img src="docs/screenshots/hero-four-pads.png" alt="The Watch gesture pad in its four modes: Reader, Photos, Slides and Prompter, each edge labelled with what a flick will do" width="720">
 
 </div>
 
@@ -34,50 +34,62 @@ is the starting point.
 
 ## What is built
 
-- **A full-screen gesture pad on the Watch.** A drag is classified by its
-  dominant axis. Diagonals and brushes are ignored, and a short but fast flick
-  is accepted on its predicted travel. Each direction plays its own WatchKit
-  haptic, so the wrist confirms the flick without a glance.
-- **One event per flick.** Direction, distance, speed, sender timestamp and
-  source, as JSON over `sendMessageData`. The phone replies with a
-  `PhoneContext` (title, index, count, starred, flipped), which gives the Watch
-  a true round-trip figure and the name of the current item.
-- **Nothing lost.** When the phone is out of reach the flick is queued with
-  `transferUserInfo` and delivered on the next connection. The pad shows the
-  queue count.
-- **A deck of cards on the phone** as the thing being driven: left and right
-  move, tap flips, up stars, down dismisses with undo. It stands in for a
-  slideshow, a reader, a media queue, or a photo picker.
-- **A log with latency.** Every flick that landed, its source, its speed and
-  how long it took, plus the mean for the session.
-- **The phone accepts its own swipes** on the card through the same pipeline,
-  so the phone side can be built and tested without a Watch.
+The phone app has four modes. Each one owns its content and decides what the
+five gestures and the crown mean while it is showing. The Watch pad labels
+its edges with the current mode's meanings, so a flick always says what it
+will do before it is made.
 
-## Gesture map
+| Mode | What it is for | Left / right | Up / down | Tap |
+| --- | --- | --- | --- | --- |
+| **Reader** | Recipes, scores, manuals. Text or PDF, propped up, hands busy. | Next / previous section or page | Scroll by most of a screen | Show or hide the text-size controls |
+| **Photos** | A set of photos and videos, phone across the table. | Next / previous | Star / remove | Play or pause a video, fit or fill a photo |
+| **Slides** | A PDF deck or images, on the phone or a mirrored display. | Next / previous | Start or pause the timer / blank the screen | Hide or show the presenter bar |
+| **Prompter** | A script rolling past a reading line, for speaking or filming. | Jump back / forward | Faster / slower | Play or pause |
 
-| Watch | Phone |
-| --- | --- |
-| Flick left | Next card |
-| Flick right | Previous card |
-| Flick up | Star or unstar |
-| Flick down | Dismiss card (undo from the menu) |
-| Tap | Flip card |
+On the Watch:
 
-The Watch reserves its screen edges for the system. Down from the top edge
-opens notifications. Flick from the middle of the screen.
+- **The whole screen is the pad.** Drags are classified by dominant axis;
+  diagonals and brushes are ignored and a short fast flick counts on its
+  predicted travel. Each direction has its own haptic.
+- **The Digital Crown scrolls** the reader, steps slides, scrubs video, and
+  nudges the prompter. Turns are summed and sent at most every 80 ms.
+- **Double Tap selects.** On Series 9 and later with watchOS 11, the pinch
+  gesture triggers the tap action, so a flick and a select never need the
+  other hand.
+- **Long press picks the mode** and holds the one Watch setting, haptics.
+- **Nothing lost.** Flicks and mode changes made while the phone is out of
+  reach are queued and delivered on the next connection.
+
+On the phone:
+
+- **Import from Files or the photo library**, or paste text. Imports are
+  copied into the app so a deck or a set is still there tomorrow. Every mode
+  ships with sample content so it does something on first launch.
+- **The screen stays awake** while a mode is showing, because a propped-up
+  phone must not sleep mid-recipe. Off in Settings.
+- **Reverse left and right** for people who think of a left flick as pulling
+  the previous page toward them. The Watch legend follows.
+- **A log** of every flick that landed, with its mode, what it did, its
+  speed, and how long it took to arrive.
+- **A test pad** under the stage: swiping there goes through the same
+  pipeline, so the phone can be developed without a Watch.
+- **Welcome sheet** with a live check that the Watch app is installed,
+  VoiceOver actions for every gesture, a privacy manifest, and unit tests for
+  the classifier, the wire format and the four models.
 
 ## Screenshots
 
 Simulator, 18 September 2026. Latency in the simulator is one to two seconds
 per hop and is not representative of hardware.
 
-| Watch pad, connected | Watch pad, flicking left | Watch pad after the phone answered |
-| --- | --- | --- |
-| <img src="docs/screenshots/watch-pad-connected.png" width="200"> | <img src="docs/screenshots/watch-pad-flick-left.png" width="200"> | <img src="docs/screenshots/watch-pad-phone-context.png" width="200"> |
+| Reader | Photos | Slides | Prompter |
+| --- | --- | --- | --- |
+| <img src="docs/screenshots/watch-reader.png" width="160"> | <img src="docs/screenshots/watch-photos.png" width="160"> | <img src="docs/screenshots/watch-slides.png" width="160"> | <img src="docs/screenshots/watch-prompter.png" width="160"> |
+| <img src="docs/screenshots/phone-reader.png" width="160"> | <img src="docs/screenshots/phone-photos.png" width="160"> | <img src="docs/screenshots/phone-slides.png" width="160"> | <img src="docs/screenshots/phone-prompter.png" width="160"> |
 
-| Phone deck, waiting | Phone deck after six flicks from the Watch | Phone log |
-| --- | --- | --- |
-| <img src="docs/screenshots/phone-deck-initial.png" width="240"> | <img src="docs/screenshots/phone-deck-after-six-flicks.png" width="240"> | <img src="docs/screenshots/phone-log.png" width="240"> |
+| Welcome | Settings |
+| --- | --- |
+| <img src="docs/screenshots/phone-welcome.png" width="200"> | <img src="docs/screenshots/phone-settings.png" width="200"> |
 
 The dated history of what the project looked like at each step is in
 [PROGRESS.md](PROGRESS.md).
@@ -133,6 +145,12 @@ not in the hand: a phone propped on a desk or across a room, a television, and
 a headset that has no touch surface at all. The plan is to keep the gesture pad
 and the event model fixed and change the target.
 
+One constraint shapes everything. No third-party app can move the system
+interface of an iPhone, an Apple TV or a Vision Pro; Apple reserves that for
+its own accessibility features. What an app can do is bring its own interface
+to each device and let the Watch drive that. So the product is one app whose
+shell runs on every target, controlled from the wrist.
+
 1. **iPhone** (done in prototype). Measures the link and the gesture vocabulary.
 2. **Apple TV.** Apple already ships a Watch remote for it, so the question is
    what a per-app remote adds over the system one: gestures tied to the content
@@ -156,15 +174,22 @@ Open questions the prototype is built to answer:
 
 ```
 Flick/                 iPhone app (the prototype's code name is Flick)
-  App/                 entry, root tabs, Watch status bar, debug routing
-  Core/                PhoneLink (WCSession), SwipeHub, Deck
-  Features/Deck        the cards
+  App/                 entry, root tabs, welcome, Watch status bar, debug routing
+  Core/                PhoneLink (WCSession), SwipeHub, AppSettings, DocumentStore
+  Features/Stage       mode switcher, the readout and test pad
+  Features/Reader      text and PDF reader
+  Features/Photos      photo and video set
+  Features/Slides      PDF or image deck with timer and blanking
+  Features/Prompter    rolling script
   Features/Log         the event log
-Flick Watch App/       watchOS app: WatchLink (WCSession), GesturePadView
-Shared/                SwipeEvent, SwipeClassifier, Wire (in both targets)
+  Features/Settings
+  Samples/             bundled recipe, script and slide deck
+Flick Watch App/       watchOS app: WatchLink, GesturePadView, ModeSheet
+FlickTests/            classifier, wire format and model tests
+Shared/                SwipeEvent, Mode, PhoneContext, WatchMessage, SwipeClassifier, Wire
 docs/screenshots/      current state of the interface
 docs/progress/         dated captures, one folder per session
-scripts/               make-icon.swift, run-sim.sh
+scripts/               make-icon.swift, make-samples.swift, run-sim.sh
 ```
 
 ## Build and run
@@ -183,10 +208,11 @@ Targets iOS 18 and watchOS 11. Swift 6 language mode.
 
 ### Simulator notes
 
-`simctl` cannot touch a Watch, so debug builds accept scripted flicks:
+`simctl` cannot touch a Watch, so debug builds accept a scripted mode and
+flicks:
 
 ```bash
-SIMCTL_CHILD_FLICK_SEND=left,left,up,tap,right,down xcrun simctl launch --terminate-running-process <watch-udid> com.rabiats.flick.watchkitapp
+SIMCTL_CHILD_FLICK_MODE=slides SIMCTL_CHILD_FLICK_SEND=left,left,up xcrun simctl launch --terminate-running-process <watch-udid> com.rabiats.flick.watchkitapp
 ```
 
 They fire in order as soon as the phone is reachable. Two things to know:
@@ -199,7 +225,10 @@ They fire in order as soon as the phone is reachable. Two things to know:
   plain `simctl launch` attaches to that process without your environment.
   Always pass `--terminate-running-process`.
 
-The phone accepts `-flickTab log` to open on the Log tab.
+The phone accepts `-flickMode reader|photos|slides|prompter`, `-flickTab
+stage|log|settings`, and `-flickReset`, which wipes the app's defaults and
+imports for a first-run capture. Tests run with `xcodebuild test` on the
+`Flick` scheme.
 
 ## How the link works
 

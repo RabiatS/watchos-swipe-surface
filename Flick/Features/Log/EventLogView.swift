@@ -1,6 +1,7 @@
 import SwiftUI
 
-/// Every flick that landed, newest first, with how long it took to arrive.
+/// Every flick that landed, newest first, with what it did and how long it
+/// took to arrive.
 struct EventLogView: View {
     @Environment(SwipeHub.self) private var hub
 
@@ -38,7 +39,7 @@ struct EventLogView: View {
                 .frame(width: 24)
                 .foregroundStyle(swipe.event.source == .watch ? Color.accentColor : Color.secondary)
             VStack(alignment: .leading, spacing: 2) {
-                Text(swipe.event.direction.title)
+                Text("\(swipe.event.direction.title): \(swipe.action)")
                     .font(.body.weight(.medium))
                 Text(subtitle(swipe))
                     .font(.caption)
@@ -56,20 +57,14 @@ struct EventLogView: View {
                 }
             }
         }
+        .accessibilityElement(children: .combine)
     }
 
     private func subtitle(_ swipe: ReceivedSwipe) -> String {
-        let time = swipe.receivedAt.formatted(date: .omitted, time: .standard)
+        var parts = [swipe.mode.title, swipe.receivedAt.formatted(date: .omitted, time: .standard)]
         if swipe.event.speed > 0 {
-            return "\(time)  ·  \(Int(swipe.event.distance)) pt  ·  \(Int(swipe.event.speed)) pt/s"
+            parts.append("\(Int(swipe.event.speed)) pt/s")
         }
-        return time
+        return parts.joined(separator: "  ·  ")
     }
-}
-
-#Preview {
-    NavigationStack {
-        EventLogView()
-    }
-    .environment(SwipeHub())
 }

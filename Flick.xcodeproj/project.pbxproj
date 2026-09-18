@@ -11,6 +11,13 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		F1C000000000000000000046 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = F1C000000000000000000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = F1C000000000000000000010;
+			remoteInfo = Flick;
+		};
 		F1C00000000000000000001C /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = F1C000000000000000000001 /* Project object */;
@@ -37,6 +44,7 @@
 /* Begin PBXFileReference section */
 		F1C000000000000000000011 /* Flick.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Flick.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		F1C000000000000000000021 /* Flick Watch App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Flick Watch App.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		F1C000000000000000000041 /* FlickTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FlickTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -68,9 +76,21 @@
 			path = Shared;
 			sourceTree = "<group>";
 		};
+		F1C000000000000000000042 /* FlickTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = FlickTests;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		F1C000000000000000000044 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		F1C000000000000000000015 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -94,6 +114,7 @@
 				F1C000000000000000000012 /* Flick */,
 				F1C000000000000000000022 /* Flick Watch App */,
 				F1C000000000000000000030 /* Shared */,
+				F1C000000000000000000042 /* FlickTests */,
 				F1C000000000000000000003 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -103,6 +124,7 @@
 			children = (
 				F1C000000000000000000011 /* Flick.app */,
 				F1C000000000000000000021 /* Flick Watch App.app */,
+				F1C000000000000000000041 /* FlickTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -110,6 +132,29 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		F1C000000000000000000040 /* FlickTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = F1C00000000000000000004A /* Build configuration list for PBXNativeTarget "FlickTests" */;
+			buildPhases = (
+				F1C000000000000000000043 /* Sources */,
+				F1C000000000000000000044 /* Frameworks */,
+				F1C000000000000000000045 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				F1C000000000000000000047 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				F1C000000000000000000042 /* FlickTests */,
+			);
+			name = FlickTests;
+			packageProductDependencies = (
+			);
+			productName = FlickTests;
+			productReference = F1C000000000000000000041 /* FlickTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 		F1C000000000000000000010 /* Flick */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = F1C000000000000000000017 /* Build configuration list for PBXNativeTarget "Flick" */;
@@ -174,6 +219,10 @@
 					F1C000000000000000000020 = {
 						CreatedOnToolsVersion = 27.0;
 					};
+					F1C000000000000000000040 = {
+						CreatedOnToolsVersion = 27.0;
+						TestTargetID = F1C000000000000000000010;
+					};
 				};
 			};
 			buildConfigurationList = F1C000000000000000000004 /* Build configuration list for PBXProject "Flick" */;
@@ -192,11 +241,19 @@
 			targets = (
 				F1C000000000000000000010 /* Flick */,
 				F1C000000000000000000020 /* Flick Watch App */,
+				F1C000000000000000000040 /* FlickTests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		F1C000000000000000000045 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		F1C000000000000000000016 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -214,6 +271,13 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		F1C000000000000000000043 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		F1C000000000000000000014 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -231,6 +295,11 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		F1C000000000000000000047 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = F1C000000000000000000010 /* Flick */;
+			targetProxy = F1C000000000000000000046 /* PBXContainerItemProxy */;
+		};
 		F1C00000000000000000001D /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = F1C000000000000000000020 /* Flick Watch App */;
@@ -411,6 +480,42 @@
 			};
 			name = Release;
 		};
+		F1C000000000000000000048 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 9934578RHC;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 0.1;
+				PRODUCT_BUNDLE_IDENTIFIER = com.rabiats.flick.tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				TARGETED_DEVICE_FAMILY = 1;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Flick.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Flick";
+			};
+			name = Debug;
+		};
+		F1C000000000000000000049 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 9934578RHC;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 0.1;
+				PRODUCT_BUNDLE_IDENTIFIER = com.rabiats.flick.tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				TARGETED_DEVICE_FAMILY = 1;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Flick.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Flick";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -437,6 +542,15 @@
 			buildConfigurations = (
 				F1C000000000000000000028 /* Debug */,
 				F1C000000000000000000029 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		F1C00000000000000000004A /* Build configuration list for PBXNativeTarget "FlickTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				F1C000000000000000000048 /* Debug */,
+				F1C000000000000000000049 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

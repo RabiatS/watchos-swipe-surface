@@ -1,10 +1,12 @@
 import Foundation
 import Observation
 
-/// One flick received, with when it landed, so latency can be shown.
+/// One flick received, with when it landed and what it did.
 struct ReceivedSwipe: Identifiable, Sendable {
     let event: SwipeEvent
     let receivedAt: Date
+    let mode: Mode
+    let action: String
 
     var id: UUID { event.id }
 
@@ -13,22 +15,36 @@ struct ReceivedSwipe: Identifiable, Sendable {
     var latency: TimeInterval { receivedAt.timeIntervalSince(event.sentAt) }
 }
 
-/// Everything a flick touches, in one place. The link hands events here,
-/// the deck changes, the log grows, and the Watch is told the new state.
+/// Everything a flick touches, in one place. The link hands messages here,
+/// the current mode changes, the log grows, and the Watch is told the new state.
 @MainActor
 @Observable
 final class SwipeHub {
     let link = PhoneLink()
-    private(set) var deck = Deck.sample
+    let settings: AppSettings
+
+    let reader: ReaderModel
+    let photos: PhotosModel
+    let slides: SlidesModel
+    let prompter: PrompterModel
+
+    private(set) var mode: Mode
     private(set) var received: [ReceivedSwipe] = []
     /// Increments per event. Views key animations to it.
     private(set) var pulse = 0
 
     private let maxLog = 300
 
-    init() {
-        link.onEvent = { [weak self] event in
-            self?.handle(event) ?? .empty
+    init(settings: AppSettings = AppSettings()) {
+        self.settings = settings
+        reader = ReaderModel(settings: settings)
+        photos = PhotosModel()
+        slides = SlidesModel(defaults: settings.defaults)
+        prompter = PrompterModel(settings: settings)
+        mode = settings.lastMode
+
+        link.onMessage = { [weak self] message in
+            self?.handle(message) ?? .empty
         }
         link.onStateChange = { [weak self] in
             self?.publish()
@@ -36,25 +52,69 @@ final class SwipeHub {
         publish()
     }
 
+    var current: any ModeController {
+        switch mode {
+        case .reader: reader
+        case .photos: photos
+        case .slides: slides
+        case .prompter: prompter
+        }
+    }
+
+    /// The context as the Watch should see it, with the horizontal legend
+    /// swapped when the user has reversed left and right.
+    var context: PhoneContext {
+        var context = current.context
+        if settings.reverseHorizontal {
+            let left = context.legend[SwipeDirection.left.rawValue]
+            let right = context.legend[SwipeDirection.right.rawValue]
+            context.legend[SwipeDirection.left.rawValue] = right
+            context.legend[SwipeDirection.right.rawValue] = left
+        }
+        return context
+    }
+
+    func setMode(_ newMode: Mode) {
+        guard newMode != mode else { return }
+        if mode == .prompter { prompter.pause() }
+        if mode == .photos { photos.pausePlayback() }
+        mode = newMode
+        settings.lastMode = newMode
+        publish()
+    }
+
+    @discardableResult
+    func handle(_ message: WatchMessage) -> PhoneContext {
+        switch message {
+        case .swipe(let event):
+            handle(event)
+        case .crown(let delta):
+            current.crown(delta)
+            publish()
+        case .setMode(let newMode):
+            setMode(newMode)
+        case .hello:
+            break
+        }
+        return context
+    }
+
     @discardableResult
     func handle(_ event: SwipeEvent) -> PhoneContext {
-        received.insert(ReceivedSwipe(event: event, receivedAt: .now), at: 0)
+        let direction = settings.reverseHorizontal ? event.direction.mirroredHorizontally : event.direction
+        let action = current.apply(direction)
+        received.insert(ReceivedSwipe(event: event, receivedAt: .now, mode: mode, action: action), at: 0)
         if received.count > maxLog {
             received.removeLast(received.count - maxLog)
         }
-        deck.apply(event.direction)
         pulse += 1
         publish()
-        return deck.context
+        return context
     }
 
-    func undoDismiss() {
-        deck.undoDismiss()
-        publish()
-    }
-
-    func resetDeck() {
-        deck = .sample
+    /// Modes call this when their content changes outside a flick, such as
+    /// after an import, so the Watch follows.
+    func contentChanged() {
         publish()
     }
 
@@ -62,7 +122,7 @@ final class SwipeHub {
         received.removeAll()
     }
 
-    var lastDirection: SwipeDirection? { received.first?.event.direction }
+    var lastReceived: ReceivedSwipe? { received.first }
 
     var watchEventCount: Int {
         received.count { $0.event.source == .watch }
@@ -76,6 +136,6 @@ final class SwipeHub {
     }
 
     private func publish() {
-        link.publish(deck.context)
+        link.publish(context)
     }
 }

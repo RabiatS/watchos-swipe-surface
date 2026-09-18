@@ -3,8 +3,9 @@ import Observation
 import WatchConnectivity
 import WatchKit
 
-/// The Watch's end of the link. Sends flicks, listens for what the phone is
-/// showing, and keeps a few counters the pad can display.
+/// The Watch's end of the link. Sends flicks, crown turns and mode changes,
+/// listens for what the phone is showing, and keeps a few counters the pad
+/// can display.
 ///
 /// WCSession calls its delegate on a private queue, so every delegate method
 /// is `nonisolated`, reads what it needs from the session, and hops to the
@@ -22,6 +23,9 @@ final class WatchLink: NSObject, WCSessionDelegate {
     private(set) var lastRoundTrip: TimeInterval?
     private(set) var lastError: String?
 
+    private var pendingCrown = 0.0
+    private var crownFlush: Task<Void, Never>?
+
     override init() {
         super.init()
         let session = WCSession.default
@@ -29,14 +33,45 @@ final class WatchLink: NSObject, WCSessionDelegate {
         session.activate()
     }
 
+    // MARK: Sending
+
     /// Sends a flick. Reachable means the phone app can be woken to receive it
     /// right now, and we get an acknowledgement back with the phone's new state.
     /// Otherwise the event is queued and delivered when the phone is next seen.
     func send(_ event: SwipeEvent) {
-        guard let data = Wire.encode(event) else { return }
-        let session = WCSession.default
-        let sentAt = event.sentAt
+        send(.swipe(event), sentAt: event.sentAt, queueIfUnreachable: true)
+    }
 
+    func setMode(_ mode: Mode) {
+        send(.setMode(mode), sentAt: .now, queueIfUnreachable: true)
+    }
+
+    /// Crown turns arrive many times a second. They are summed and sent at
+    /// most every 80 ms, without waiting for a reply.
+    func crown(_ delta: Double) {
+        pendingCrown += delta
+        guard crownFlush == nil else { return }
+        crownFlush = Task {
+            try? await Task.sleep(for: .milliseconds(80))
+            let total = pendingCrown
+            pendingCrown = 0
+            crownFlush = nil
+            guard abs(total) > 0.01, let data = Wire.encode(.crown(total)) else { return }
+            WCSession.default.sendMessageData(data, replyHandler: nil) { error in
+                let message = error.localizedDescription
+                Task { @MainActor in self.lastError = message }
+            }
+        }
+    }
+
+    /// Asks the phone for its current state, for when the pad has just opened.
+    func hello() {
+        send(.hello, sentAt: .now, queueIfUnreachable: false)
+    }
+
+    private func send(_ message: WatchMessage, sentAt: Date, queueIfUnreachable: Bool) {
+        guard let data = Wire.encode(message) else { return }
+        let session = WCSession.default
         if session.isReachable {
             session.sendMessageData(data, replyHandler: { reply in
                 let roundTrip = Date.now.timeIntervalSince(sentAt)
@@ -54,8 +89,8 @@ final class WatchLink: NSObject, WCSessionDelegate {
                 }
             })
             sentCount += 1
-        } else {
-            session.transferUserInfo(Wire.userInfo(for: event))
+        } else if queueIfUnreachable {
+            session.transferUserInfo(Wire.userInfo(for: message))
             queuedCount += 1
         }
     }
@@ -85,6 +120,7 @@ final class WatchLink: NSObject, WCSessionDelegate {
             self.isReachable = reachable
             self.lastError = message
             if let context { self.phoneContext = context }
+            if reachable { self.hello() }
         }
     }
 
@@ -92,6 +128,7 @@ final class WatchLink: NSObject, WCSessionDelegate {
         let reachable = session.isReachable
         Task { @MainActor in
             self.isReachable = reachable
+            if reachable { self.hello() }
         }
     }
 

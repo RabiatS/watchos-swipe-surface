@@ -5,7 +5,7 @@
 #
 #   scripts/run-sim.sh            # first active pair
 #   scripts/run-sim.sh <pairUDID> # a specific pair from: xcrun simctl list pairs
-#   FLICK_SEND=left,left,up,tap scripts/run-sim.sh   # script flicks (debug builds)
+#   FLICK_MODE=slides FLICK_SEND=left,up scripts/run-sim.sh   # script a mode and flicks (debug builds)
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
@@ -49,10 +49,7 @@ xcrun simctl launch --terminate-running-process "$PHONE" com.rabiats.flick
 # --terminate-running-process matters on the Watch: wcd relaunches the app in
 # the background within a second of a plain terminate, and a later launch just
 # attaches to that process without the environment below.
-if [[ -n "${FLICK_SEND:-}" ]]; then
-  SIMCTL_CHILD_FLICK_SEND="$FLICK_SEND" xcrun simctl launch --terminate-running-process "$WATCH" com.rabiats.flick.watchkitapp
-else
+SIMCTL_CHILD_FLICK_MODE="${FLICK_MODE:-}" SIMCTL_CHILD_FLICK_SEND="${FLICK_SEND:-}" \
   xcrun simctl launch --terminate-running-process "$WATCH" com.rabiats.flick.watchkitapp
-fi
 echo "Running. Flick on the Watch window; the iPhone window reacts."
-echo "Scripted flicks (debug builds): FLICK_SEND=left,up,tap scripts/run-sim.sh"
+echo "Scripted (debug builds): FLICK_MODE=slides FLICK_SEND=left,up,tap scripts/run-sim.sh"
