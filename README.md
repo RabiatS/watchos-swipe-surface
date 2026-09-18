@@ -1,8 +1,8 @@
 <div align="center">
 
-# Apple Watch as a Swipe Surface for Paired Devices
+# Apple Watch as a Swipe Surface for iOS, tvOS and visionOS
 
-**Wrist-worn touch input for the iPhone, with Apple TV and Apple Vision Pro as the next targets**
+**An Apple device driven from nothing but the Watch's touchscreen. iPhone first, Apple TV and Apple Vision Pro next.**
 
 <img src="docs/screenshots/hero-watch-and-phone.png" alt="A left flick on the Watch simulator, and the iPhone simulator's card deck after six flicks from the Watch" width="720">
 
